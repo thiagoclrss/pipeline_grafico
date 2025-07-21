@@ -111,11 +111,7 @@ if __name__ == '__main__':
     colecao_poligonos.set_facecolor(cores_faces)
     ax.add_collection3d(colecao_poligonos)
 
-<<<<<<< HEAD
-    #Renderizar as arestas da linha reta
-=======
-    # Renderizar as arestas da linha reta
->>>>>>> 4d542d7 (testando implementação da terceira questão (camera))
+    #Redenrizar as arestas da linha reta
     for aresta in arestas_linha:
         p_inicio, p_fim = vertices_linha[aresta[0]], vertices_linha[aresta[1]]
         ax.plot([p_inicio[0], p_fim[0]], [p_inicio[1], p_fim[1]], [p_inicio[2], p_fim[2]], color='red', linewidth=3)
