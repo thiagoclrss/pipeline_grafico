@@ -1,104 +1,145 @@
 import matplotlib
 matplotlib.use('TkAgg')
 import numpy as np
-import solidos
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from mpl_toolkits.mplot3d import Axes3D
 
-from mundo import matriz_translacao, aplicar_transformacao, compor_cena
+# --- SESSÃO 1: Importando os Sólidos dos Módulos ---
+from solidos.paralelepipedo import paralelepipedo
+from solidos.cilindro import cilindro
+from solidos.cano_reto import cano_reto
+from solidos.cano_curvo import cano_curvado, curva_hermite
+from solidos.reta import linha_reta
+from mundo import compor_cena
 
-def matriz_visao(posicao_camera, ponto_alvo, vetor_up_mundo):
+# --- SESSÃO 2: Funções de Transformação ---
+
+def matriz_escala(sx, sy, sz):
+    return np.array([[sx,0,0,0],[0,sy,0,0],[0,0,sz,0],[0,0,0,1]])
+
+def matriz_rotacao_y(angulo):
+    rad = np.radians(angulo)
+    c, s = np.cos(rad), np.sin(rad)
+    return np.array([[c,0,s,0],[0,1,0,0],[-s,0,c,0],[0,0,0,1]])
+
+def matriz_rotacao_z(angulo):
+    rad = np.radians(angulo)
+    c, s = np.cos(rad), np.sin(rad)
+    return np.array([[c,-s,0,0],[s,c,0,0],[0,0,1,0],[0,0,0,1]])
+
+def matriz_translacao(tx, ty, tz):
+    return np.array([[1,0,0,tx],[0,1,0,ty],[0,0,1,tz],[0,0,0,1]])
+
+def aplicar_transformacao(vertices, matriz):
+    vertices_2d = np.atleast_2d(vertices)
+    vertices_homogeneos = np.hstack((vertices_2d, np.ones((vertices_2d.shape[0], 1))))
+    vertices_transformados = (matriz @ vertices_homogeneos.T).T
+    return vertices_transformados[:, :3]
+
+# --- FUNÇÃO 'matriz_visualizacao' CORRIGIDA ---
+def matriz_visualizacao(eye, at, up):
     """
-    Calcula a Matriz de Visualização (View Matrix) 4x4 para transformar
-    coordenadas do mundo para as coordenadas da câmera.
-
-    Args:
-        posicao_camera (np.array): Posição da câmera no mundo.
-        ponto_alvo (np.array): Ponto para o qual a câmera está olhando.
-        vetor_up_mundo (np.array): Vetor que indica a direção "para cima" no mundo (ex: [0,0,1]).
-
-    Returns:
-        np.array: A matriz de visualização 4x4.
+    Calcula a Matriz de Visualização (View Matrix) de forma robusta e matematicamente correta.
     """
-    # Passo 1: Calcular a base de vetores do sistema de coordenadas da câmera (u, v, n)
-    # O eixo n (eixo Z da câmera) aponta do alvo para a câmera.
-    n = posicao_camera - ponto_alvo
-    n = n / np.linalg.norm(n)
+    # Eixo Z da Câmera (aponta para a frente, do olho para o alvo)
+    forward = at - eye
+    if np.linalg.norm(forward) < 1e-6: # Evita divisão por zero se eye e at forem iguais
+        return np.eye(4)
+    forward = forward / np.linalg.norm(forward)
 
-    # O eixo u (eixo X da câmera) é perpendicular a 'n' e ao vetor 'up' do mundo.
-    u = np.cross(vetor_up_mundo, n)
-    u = u / np.linalg.norm(u)
+    # Eixo X da Câmera (vetor "direita")
+    right = np.cross(up, -forward) # Usamos -forward para o produto vetorial
+    if np.linalg.norm(right) < 1e-6: # Evita gimbal lock
+        right = np.array([1., 0., 0.])
+    right = right / np.linalg.norm(right)
 
-    # O eixo v (eixo Y da câmera) é o verdadeiro "up" da câmera, perpendicular a 'n' e 'u'.
-    v = np.cross(n, u)
+    # Eixo Y da Câmera (vetor "para cima" da câmera)
+    camera_up = np.cross(-forward, right)
 
-    # Passo 2: Construir a matriz de rotação que alinha os eixos do mundo com (u,v,n)
-    # Esta é a transposta da matriz formada pelos vetores da base.
-    mat_rot = np.array([
-        [u[0], u[1], u[2], 0],
-        [v[0], v[1], v[2], 0],
-        [n[0], n[1], n[2], 0],
-        [0,    0,    0,    1]
+    # A matriz de visualização é a inversa da matriz de transformação da câmera.
+    # Montamos a matriz de rotação inversa (cujos eixos são as linhas)
+    # e a matriz de translação inversa.
+
+    rot_inv = np.array([
+        [right[0], right[1], right[2]],
+        [camera_up[0], camera_up[1], camera_up[2]],
+        [-forward[0], -forward[1], -forward[2]]
     ])
 
-    # Passo 3: Construir a matriz de translação que move a câmera para a origem
-    mat_trans = matriz_translacao(-posicao_camera[0], -posicao_camera[1], -posicao_camera[2])
+    trans_inv = -rot_inv @ eye
 
-    # A Matriz de Visão final é a combinação da translação e da rotação
-    return mat_rot @ mat_trans
+    # Combina em uma matriz 4x4 final
+    matriz_view = np.eye(4)
+    matriz_view[:3, :3] = rot_inv
+    matriz_view[:3, 3] = trans_inv
+
+    return matriz_view
+
+# --- SESSÃO 3 e 4 (permanecem inalteradas) ---
 
 if __name__ == '__main__':
+    # --- Parte 1: Visualização no Sistema do Mundo (como antes) ---
+    vertices_mundo, faces_mundo, cores_faces, vertices_linha_mundo, arestas_linha_mundo = compor_cena()
 
-    vertices_cena, faces_cena, cores_faces, vertices_linha, arestas_linha = compor_cena()
-    fig = plt.figure(figsize=(15, 12))
-    ax: Axes3D = fig.add_subplot(projection='3d')
+    posicao_camera_eye = np.array([10.0, 8.0, 15.0])
+    ponto_alvo_at = np.array([0.0, 2.0, 10.0])
+    vetor_up_mundo = np.array([0.0, 1.0, 0.0])
 
-    # Transformação para o Sistema de Coordenadas da Câmera ---
+    fig_mundo = plt.figure(figsize=(12, 10))
+    ax_mundo: Axes3D = fig_mundo.add_subplot(projection='3d')
 
-    # Definir os parâmetros da câmera
-    posicao_camera = np.array([8, 3, 5])
-    ponto_alvo = np.array([0, 0, 0])
-    vetor_up_mundo = np.array([0, 0, 1])
+    poly3d_mundo = [vertices_mundo[list(face)] for face in faces_mundo]
+    colecao_mundo = Poly3DCollection(poly3d_mundo, alpha=1.0)
+    colecao_mundo.set_facecolor(cores_faces)
+    ax_mundo.add_collection3d(colecao_mundo)
 
-    # Calcular a Matriz de Visualização
-    mat_view = matriz_visao(posicao_camera, ponto_alvo, vetor_up_mundo)
+    for aresta in arestas_linha_mundo:
+        p_inicio, p_fim = vertices_linha_mundo[aresta[0]], vertices_linha_mundo[aresta[1]]
+        ax_mundo.plot([p_inicio[0], p_fim[0]], [p_inicio[1], p_fim[1]], [p_inicio[2], p_fim[2]], color='red', linewidth=3)
 
-    # 3. Transformar TODOS os vértices da cena (sólidos e linhas) para o SCC
-    vertices_cena_scc = aplicar_transformacao(vertices_cena, mat_view)
-    vertices_linha_scc = aplicar_transformacao(vertices_linha, mat_view)
+    ax_mundo.scatter(posicao_camera_eye[0], posicao_camera_eye[1], posicao_camera_eye[2], color='magenta', s=150, label='Origem da Câmera (Eye)', depthshade=False)
+    ax_mundo.scatter(0,0,0, color='black', s=150, marker='X', label='Origem do Mundo (0,0,0)', depthshade=False)
+    ax_mundo.scatter(ponto_alvo_at[0], ponto_alvo_at[1], ponto_alvo_at[2],
+                    color='purple', s=150, marker='*', label='Ponto at', depthshade=False)
 
-    # Renderizar os sólidos com faces, usando os vértices transformados
-    poly3d = [vertices_cena_scc[list(face)] for face in faces_cena]
-    colecao_poligonos = Poly3DCollection(poly3d, alpha=1.0)
-    colecao_poligonos.set_facecolor(cores_faces)
-    ax.add_collection3d(colecao_poligonos)
-
-    # Renderizar as arestas da linha reta, usando os vértices transformados
-    for aresta in arestas_linha:
-        p_inicio, p_fim = vertices_linha_scc[aresta[0]], vertices_linha_scc[aresta[1]]
-        ax.plot([p_inicio[0], p_fim[0]], [p_inicio[1], p_fim[1]], [p_inicio[2], p_fim[2]], color='red', linewidth=3)
-
-    origem_mundo = np.array([[0, 0, 0]])
-    # 2. Transformar a origem para o Sistema de Coordenadas da Câmera
-    origem_scc = aplicar_transformacao(origem_mundo, mat_view)
-    # 3. Plotar o ponto transformado com um marcador distinto (uma esfera roxa)
-    ax.scatter(origem_scc[0, 0], origem_scc[0, 1], origem_scc[0, 2],
-               color='purple', s=150, label='Origem do Mundo (0,0,0)', depthshade=True)
-    # Adicionar uma legenda para identificar o ponto
-    ax.legend()
-
-    # Definimos os rótulos dos eixos para refletir o SCC
-    ax.set_xlabel('Eixo U (Câmera)')
-    ax.set_ylabel('Eixo V (Câmera)')
-    ax.set_zlabel('Eixo N (Câmera)')
-    ax.set_title('Cena 3D no Sistema de Coordendas da Câmera')
-
-    ax.set_xlim(-20, 10)
-    ax.set_ylim(-20, 10)
-    ax.set_zlim(-20, 10)
-
-    # ax.view_init(elev=30, azim=-75)
-    ax.set_aspect('equal', adjustable='box')
+    ax_mundo.set_title('Cena no Sistema de Coordenadas do Mundo')
+    ax_mundo.set_xlabel('X Mundo'); ax_mundo.set_ylabel('Y Mundo'); ax_mundo.set_zlabel('Z Mundo')
+    ax_mundo.set_xlim(-10, 10); ax_mundo.set_ylim(-10, 10); ax_mundo.set_zlim(-10, 10)
+    ax_mundo.view_init(elev=30, azim=-75)
     plt.grid(True)
+
+    # --- Parte 2: Transformação e Visualização no Sistema da Câmera ---
+    matriz_view = matriz_visualizacao(posicao_camera_eye, ponto_alvo_at, vetor_up_mundo)
+
+    vertices_camera = aplicar_transformacao(vertices_mundo, matriz_view)
+    vertices_linha_camera = aplicar_transformacao(vertices_linha_mundo, matriz_view)
+    origem_mundo_transformada = aplicar_transformacao(np.array([0.0, 0.0, 0.0]), matriz_view)
+    ponto_alvo_at_camera = aplicar_transformacao(ponto_alvo_at, matriz_view)
+
+    fig_camera = plt.figure(figsize=(12, 10))
+    ax_camera: Axes3D = fig_camera.add_subplot(projection='3d')
+
+    poly3d_camera = [vertices_camera[list(face)] for face in faces_mundo]
+    colecao_camera = Poly3DCollection(poly3d_camera, alpha=1.0)
+    colecao_camera.set_facecolor(cores_faces)
+    ax_camera.add_collection3d(colecao_camera)
+
+    for aresta in arestas_linha_mundo:
+        p_inicio, p_fim = vertices_linha_camera[aresta[0]], vertices_linha_camera[aresta[1]]
+        ax_camera.plot([p_inicio[0], p_fim[0]], [p_inicio[1], p_fim[1]], [p_inicio[2], p_fim[2]], color='red', linewidth=3)
+
+    ax_camera.scatter(0, 0, 0, color='magenta', s=150, label='Origem da Câmera (Eye)', depthshade=False)
+    ax_camera.scatter(origem_mundo_transformada[0,0], origem_mundo_transformada[0,1], origem_mundo_transformada[0,2],
+                        color='black', s=150, marker='X', label='Origem do Mundo (0,0,0)', depthshade=False)
+    ax_camera.scatter(ponto_alvo_at_camera[0,0], ponto_alvo_at_camera[0,1], ponto_alvo_at_camera[0,2],
+                    color='purple', s=150, marker='*', label='Ponto at', depthshade=False)
+
+    ax_camera.set_title('Cena no Sistema de Coordenadas da Câmera')
+    ax_camera.set_xlabel('X Câmera'); ax_camera.set_ylabel('Y Câmera'); ax_camera.set_zlabel('Z Câmera')
+    ax_camera.set_xlim(-10, 10); ax_camera.set_ylim(-10, 10); ax_camera.set_zlim(-20, 0)
+    ax_camera.view_init(elev=30, azim=-75)
+    ax_camera.legend()
+    plt.grid(True)
+
     plt.show()

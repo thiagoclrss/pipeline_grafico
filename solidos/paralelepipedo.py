@@ -5,18 +5,14 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from mpl_toolkits.mplot3d import Axes3D
 
-# Substitua o conteúdo de solidos/paralelepipedo.py por este código:
-
-import numpy as np
-
-def paralelepipedo(largura, altura, profundidade):
+def paralelepipedo(largura, profundidade, altura):
     """
     Modela um paralelepípedo sólido com um canto na origem, usando faces triangulares.
-    Esta é uma versão corrigida e verificada.
+    Convenção Z-Up: A altura está no eixo Z e a base no plano XY.
     """
-    # --- 1. Definição dos 8 Vértices ---
-    # Usaremos uma convenção Y-Up (Y representa a altura) para maior clareza.
-    # A base estará no plano XZ.
+    # --- 1. Definição dos 8 Vértices (LÓGICA Z-UP) ---
+    # A 'altura' agora afeta a coordenada Z.
+    # A 'profundidade' agora afeta a coordenada Y.
     #
     #       6--------7
     #      /|       /|
@@ -28,34 +24,34 @@ def paralelepipedo(largura, altura, profundidade):
     #    0--------1
 
     vertices = np.array([
-        [0,       0,      profundidade], # Vértice 0: Frente-Base-Esquerda
-        [largura, 0,      profundidade], # Vértice 1: Frente-Base-Direita
-        [0,       altura, profundidade], # Vértice 2: Frente-Topo-Esquerda
-        [largura, altura, profundidade], # Vértice 3: Frente-Topo-Direita
-        [0,       0,      0],            # Vértice 4: Trás-Base-Esquerda
-        [largura, 0,      0],            # Vértice 5: Trás-Base-Direita
-        [0,       altura, 0],            # Vértice 6: Trás-Topo-Esquerda
-        [largura, altura, 0]             # Vértice 7: Trás-Topo-Direita
+        [0,       0,           0],      # Vértice 0: Base-Frente-Esquerda
+        [largura, 0,           0],      # Vértice 1: Base-Frente-Direita
+        [0,       profundidade, 0],      # Vértice 2: Base-Trás-Esquerda
+        [largura, profundidade, 0],      # Vértice 3: Base-Trás-Direita
+        [0,       0,           altura], # Vértice 4: Topo-Frente-Esquerda
+        [largura, 0,           altura], # Vértice 5: Topo-Frente-Direita
+        [0,       profundidade, altura], # Vértice 6: Topo-Trás-Esquerda
+        [largura, profundidade, altura]  # Vértice 7: Topo-Trás-Direita
     ])
 
     # --- 2. Geração das Faces a partir de Quadriláteros ---
-    # Definimos as 6 faces como quadriláteros com vértices em sentido anti-horário (visto de fora)
+    # A lógica de conexão dos vértices não muda.
     quads = [
-        (0, 1, 3, 2), # Face da Frente
-        (4, 5, 1, 0), # Face de Baixo
-        (5, 7, 6, 4), # Face de Trás
-        (2, 3, 7, 6), # Face de Cima
+        (0, 1, 3, 2), # Face de Baixo
+        (4, 5, 7, 6), # Face de Cima
+        (0, 1, 5, 4), # Face da Frente
+        (2, 3, 7, 6), # Face de Trás
         (0, 2, 6, 4), # Face da Esquerda
-        (1, 5, 7, 3)  # Face da Direita
+        (1, 3, 7, 5)  # Face da Direita
     ]
 
     faces = []
     for v0, v1, v2, v3 in quads:
-        # Divide cada quadrilátero em dois triângulos
         faces.append([v0, v1, v2])
         faces.append([v0, v2, v3])
 
     # --- 3. Geração das 12 Arestas ---
+    # A lógica de conexão também não muda.
     arestas = [
         (0, 1), (0, 2), (0, 4), (1, 3), (1, 5), (2, 3),
         (2, 6), (3, 7), (4, 5), (4, 6), (5, 7), (6, 7)
@@ -63,16 +59,16 @@ def paralelepipedo(largura, altura, profundidade):
 
     return vertices, arestas, faces
 
-# --- Bloco de Execução Principal e Visualização ---
+# --- Bloco de Execução Principal e Visualização (Z-UP) ---
 if __name__ == '__main__':
     # Parâmetros do paralelepípedo
     largura_caixa = 8.0
-    altura_caixa = 3.0
     profundidade_caixa = 5.0
+    altura_caixa = 3.0
 
     # Gerar a geometria do sólido
     vertices_caixa, arestas_caixa, faces_caixa = paralelepipedo(
-        largura_caixa, altura_caixa, profundidade_caixa
+        largura_caixa, profundidade_caixa, altura_caixa
     )
 
     # Configuração da visualização 3D
@@ -91,17 +87,20 @@ if __name__ == '__main__':
         alpha=1.0
     ))
 
+    # --- MUDANÇAS PARA VISUALIZAÇÃO Z-UP ---
+
     # Configurações do gráfico
     ax.set_xlabel('Eixo X (Largura)')
-    ax.set_ylabel('Eixo Y (Altura)')
-    ax.set_zlabel('Eixo Z (Profundidade)')
-    ax.set_title('Modelo de Paralelepípedo com Malha Triangular')
+    ax.set_ylabel('Eixo Y (Profundidade)')
+    ax.set_zlabel('Eixo Z (Altura)')
+    ax.set_title('Modelo de Paralelepípedo com Malha Triangular (Z-Up)')
 
     # Ajustar os limites e a proporção para uma visualização correta
-    ax.set_box_aspect([largura_caixa, altura_caixa, profundidade_caixa])
+    ax.set_box_aspect([largura_caixa, profundidade_caixa, altura_caixa])
     ax.set_xlim(0, largura_caixa)
-    ax.set_ylim(0, altura_caixa)
-    ax.set_zlim(0, profundidade_caixa)
+    ax.set_ylim(0, profundidade_caixa)
+    ax.set_zlim(0, altura_caixa)
 
-    ax.view_init(elev=25, azim=-120)
+    # Um bom ângulo de câmera para visualização Z-Up
+    ax.view_init(elev=30, azim=-60)
     plt.show()

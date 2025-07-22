@@ -48,7 +48,7 @@ def compor_cena():
     # --- Objeto 1: Paralelepípedo como base/chão ---
     # A função paralelepipedo() agora é importada do seu próprio arquivo.
     v_caixa, _, f_caixa = paralelepipedo(largura=8, altura=3, profundidade=5)
-    mat_caixa = matriz_translacao(-6, -6, -6)
+    mat_caixa = matriz_translacao(-2, -8, 0)
     v_caixa = aplicar_transformacao(v_caixa, mat_caixa)
 
     offset = len(todos_vertices)
@@ -58,7 +58,7 @@ def compor_cena():
 
     # --- Objeto 2: Cilindro em pé ---
     v_cil, _, f_cil = cilindro(raio=2, altura=6)
-    mat_cil = matriz_translacao(5, 0, 5)
+    mat_cil = matriz_translacao(5, 0, 2)
     v_cil = aplicar_transformacao(v_cil, mat_cil)
 
     offset = len(todos_vertices)
@@ -68,8 +68,8 @@ def compor_cena():
 
     # --- Objeto 3: Cano Reto deitado ---
     v_cano_r, _, f_cano_r = cano_reto(raio=1.5, comprimento=8, espessura=0.3)
-    mat_rot_cano_r = matriz_rotacao_y(90)
-    mat_trans_cano_r = matriz_translacao(-8, 1.5, 0)
+    mat_rot_cano_r = matriz_rotacao_y(45)
+    mat_trans_cano_r = matriz_translacao(-8, 1.5, 2)
     v_cano_r = aplicar_transformacao(v_cano_r, mat_rot_cano_r)
     v_cano_r = aplicar_transformacao(v_cano_r, mat_trans_cano_r)
 
@@ -79,7 +79,7 @@ def compor_cena():
     todas_cores.extend(['lightgreen'] * len(f_cano_r))
 
     # --- Objeto 4: Cano Curvado ---
-    P0, P1 = np.array([-5,1, -8]), np.array([0,6,-4])
+    P0, P1 = np.array([0,3, 6]), np.array([5,8,10])
     T0, T1 = np.array([10,15,5]), np.array([5,0,10])
     v_cano_c, _, f_cano_c = cano_curvado(1, 0.2, P0, P1, T0, T1, 30, 12)
 
@@ -92,7 +92,7 @@ def compor_cena():
     v_linha, a_linha, _ = linha_reta(7)
     mat_rot1 = matriz_rotacao_y(45)
     mat_rot2 = matriz_rotacao_z(30)
-    mat_trans = matriz_translacao(0, 7, -8)
+    mat_trans = matriz_translacao(0, 7, 2)
     v_linha = aplicar_transformacao(v_linha, mat_rot1 @ mat_rot2 @ mat_trans)
 
     return np.array(todos_vertices), todas_faces, todas_cores, v_linha, a_linha
@@ -123,7 +123,7 @@ if __name__ == '__main__':
 
     ax.set_xlim(-10, 10)
     ax.set_ylim(-10, 10)
-    ax.set_zlim(-10, 10)
+    ax.set_zlim(0, 20)
 
     ax.view_init(elev=30, azim=-75)
     plt.grid(True)
