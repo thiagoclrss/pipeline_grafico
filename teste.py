@@ -11,7 +11,7 @@ from solidos.cilindro import cilindro
 from solidos.cano_reto import cano_reto
 from solidos.cano_curvo import cano_curvado, curva_hermite
 from solidos.reta import linha_reta
-
+from mundo import compor_cena
 # --- SESSÃO 2: Funções de Transformação ---
 
 def matriz_escala(sx, sy, sz):
@@ -71,34 +71,16 @@ def matriz_visualizacao(eye, at, up):
     return rotacao @ translacao
 
 # --- SESSÃO 3: Composição da Cena (Inalterada) ---
-def compor_cena():
-    # ... (A função compor_cena() continua exatamente como antes)
-    todos_vertices = []
-    todas_faces = []
-    todas_cores = []
-    v_caixa, _, f_caixa = paralelepipedo(largura=8, altura=3, profundidade=5)
-    mat_caixa = matriz_translacao(-6, -6, -6)
-    v_caixa = aplicar_transformacao(v_caixa, mat_caixa)
-    offset = len(todos_vertices); todos_vertices.extend(v_caixa); todas_faces.extend(np.array(f_caixa) + offset); todas_cores.extend(['gray'] * len(f_caixa))
-    v_cil, _, f_cil = cilindro(raio=2, altura=6)
-    mat_cil = matriz_translacao(5, 0, 5)
-    v_cil = aplicar_transformacao(v_cil, mat_cil)
-    offset = len(todos_vertices); todos_vertices.extend(v_cil); todas_faces.extend(np.array(f_cil) + offset); todas_cores.extend(['cornflowerblue'] * len(f_cil))
-    v_cano_r, _, f_cano_r = cano_reto(raio=1.5, comprimento=8, espessura=0.3)
-    mat_rot_cano_r = matriz_rotacao_y(90); mat_trans_cano_r = matriz_translacao(-8, 1.5, 0)
-    v_cano_r = aplicar_transformacao(aplicar_transformacao(v_cano_r, mat_rot_cano_r), mat_trans_cano_r)
-    offset = len(todos_vertices); todos_vertices.extend(v_cano_r); todas_faces.extend(np.array(f_cano_r) + offset); todas_cores.extend(['lightgreen'] * len(f_cano_r))
-    P0, P1, T0, T1 = np.array([-5,1,-8]), np.array([0,6,-4]), np.array([10,15,5]), np.array([5,0,10])
-    v_cano_c, _, f_cano_c = cano_curvado(1, 0.2, P0, P1, T0, T1, 30, 12)
-    offset = len(todos_vertices); todos_vertices.extend(v_cano_c); todas_faces.extend(np.array(f_cano_c) + offset); todas_cores.extend(['deepskyblue'] * len(f_cano_c))
-    v_linha, a_linha, _ = linha_reta(7)
-    mat_transf_linha = matriz_translacao(0, 7, -8) @ matriz_rotacao_z(30) @ matriz_rotacao_y(45)
-    v_linha = aplicar_transformacao(v_linha, mat_transf_linha)
-    return np.array(todos_vertices), todas_faces, todas_cores, v_linha, a_linha
+
 
 # --- SESSÃO 4: Bloco de Execução Principal e Visualização ---
 
 if __name__ == '__main__':
+
+    posicao_camera_eye = np.array([8.0, 20.0, 1.0])
+    ponto_alvo_at = np.array([0.0, 12.0, 0.0])
+    vetor_up_mundo = np.array([0.0, 0.0, 1.0])
+
     # --- Parte 1: Visualização no Sistema do Mundo (como antes) ---
     vertices_mundo, faces_mundo, cores_faces, vertices_linha_mundo, arestas_linha_mundo = compor_cena()
 
@@ -114,18 +96,25 @@ if __name__ == '__main__':
         p_inicio, p_fim = vertices_linha_mundo[aresta[0]], vertices_linha_mundo[aresta[1]]
         ax_mundo.plot([p_inicio[0], p_fim[0]], [p_inicio[1], p_fim[1]], [p_inicio[2], p_fim[2]], color='red', linewidth=3)
 
+
+    ax_mundo.scatter(posicao_camera_eye[0], posicao_camera_eye[1], posicao_camera_eye[2], color='magenta', s=150, label='Origem da Câmera (Eye)', depthshade=False)
+    ax_mundo.scatter(0,0,0, color='black', s=150, marker='X', label='Origem do Mundo (0,0,0)', depthshade=False)
+    ax_mundo.scatter(ponto_alvo_at[0], ponto_alvo_at[1], ponto_alvo_at[2],
+                    color='purple', s=150, marker='*', label='Ponto at', depthshade=False)
+
     ax_mundo.set_title('Cena no Sistema de Coordenadas do Mundo')
     ax_mundo.set_xlabel('X Mundo'); ax_mundo.set_ylabel('Y Mundo'); ax_mundo.set_zlabel('Z Mundo')
-    ax_mundo.set_xlim(-10, 10); ax_mundo.set_ylim(-10, 10); ax_mundo.set_zlim(-10, 10)
-    ax_mundo.view_init(elev=30, azim=-75)
+    ax_mundo.set_xlim(-10, 10);
+    ax_mundo.set_ylim(0, 20);
+    ax_mundo.set_zlim(-10, 10)
+    ax_mundo.view_init(elev=100, azim=270)
+
     plt.grid(True)
 
     # --- Parte 2: Transformação e Visualização no Sistema da Câmera ---
 
     # Passo 1: Escolha a origem e o alvo da câmera no sistema do mundo
-    posicao_camera_eye = np.array([10.0, 8.0, 10.0])
-    ponto_alvo_at = np.array([0.0, 2.0, 0.0])
-    vetor_up_mundo = np.array([0.0, 1.0, 0.0]) # Y é "para cima" no nosso mundo
+     # Y é "para cima" no nosso mundo
 
     # Passo 2: Calcule a matriz de visualização
     matriz_view = matriz_visualizacao(posicao_camera_eye, ponto_alvo_at, vetor_up_mundo)
@@ -141,7 +130,7 @@ if __name__ == '__main__':
 
     # Passo 4: Mostre os sólidos no novo sistema de coordenadas
     fig_camera = plt.figure(figsize=(12, 10))
-    ax_camera = fig_camera.add_subplot(projection='3d')
+    ax_camera : Axes3D = fig_camera.add_subplot(projection='3d')
 
     poly3d_camera = [vertices_camera[list(face)] for face in faces_mundo]
     colecao_camera = Poly3DCollection(poly3d_camera, alpha=1.0)
@@ -162,6 +151,12 @@ if __name__ == '__main__':
     ax_camera.set_title('Cena no Sistema de Coordenadas da Câmera')
     ax_camera.set_xlabel('X Câmera'); ax_camera.set_ylabel('Y Câmera'); ax_camera.set_zlabel('Z Câmera')
     ax_camera.legend()
+    #ax_camera.set_xlim(-10, 10);
+    #ax_camera.set_ylim(0,-20);
+    #ax_camera.set_zlim(-10, 10)
+    #ax_mundo.view_init(elev=100, azim=270)
+
+    #ax_camera.view_init(elev=100, azim=270)
     plt.grid(True)
 
     # Mostra as duas figuras

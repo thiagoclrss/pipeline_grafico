@@ -92,16 +92,16 @@ if __name__ == '__main__':
     ))
 
     # Configurações do gráfico
-    ax.set_xlabel('Eixo X (Largura)')
-    ax.set_ylabel('Eixo Y (Altura)')
-    ax.set_zlabel('Eixo Z (Profundidade)')
+    ax.set_xlabel('Eixo X')
+    ax.set_ylabel('Eixo Y')
+    ax.set_zlabel('Eixo Z')
     ax.set_title('Modelo de Paralelepípedo com Malha Triangular')
 
     # Ajustar os limites e a proporção para uma visualização correta
     ax.set_box_aspect([largura_caixa, altura_caixa, profundidade_caixa])
-    ax.set_xlim(0, largura_caixa)
-    ax.set_ylim(0, altura_caixa)
-    ax.set_zlim(0, profundidade_caixa)
+    ax.set_xlim(0, largura_caixa + 2)
+    ax.set_ylim(0, altura_caixa + 2)
+    ax.set_zlim(0, profundidade_caixa + 2)
 
-    ax.view_init(elev=25, azim=-120)
+    ax.view_init(elev=115, azim=220, roll=-52)
     plt.show()

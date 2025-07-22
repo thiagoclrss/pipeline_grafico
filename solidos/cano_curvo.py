@@ -203,5 +203,5 @@ if __name__ == '__main__':
     ax.set_ylim(mid_y - max_range, mid_y + max_range)
     ax.set_zlim(mid_z - max_range, mid_z + max_range)
 
-    ax.view_init(elev=30, azim=-60)
+    ax.view_init(elev=100, azim=220, roll=-50)
     plt.show()

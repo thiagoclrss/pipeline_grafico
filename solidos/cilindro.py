@@ -7,50 +7,51 @@ from mpl_toolkits.mplot3d import Axes3D
 
 def cilindro(raio, altura, num_divisoes=20):
     """
-    Modela um cilindro sólido alinhado com o eixo Z, usando faces triangulares.
+    Modela um cilindro sólido com orientação Y-Up (Y como altura), usando faces triangulares.
+    A base do cilindro está no plano XZ.
 
     Args:
         raio (float): O raio da base do cilindro.
-        altura (float): A altura do cilindro ao longo do eixo Z.
+        altura (float): A altura do cilindro ao longo do eixo Y.
         num_divisoes (int): O número de segmentos para formar a base circular.
 
     Returns:
         tuple: Uma tupla contendo (vértices, arestas, faces).
-               - vertices: um array NumPy de pontos [x, y, z].
-               - arestas: uma lista de tuplas conectando os índices dos vértices.
-               - faces: uma lista de tuplas definindo as superfícies triangulares.
     """
     # Listas para armazenar a geometria
     vertices = []
     faces = []
     arestas = []
 
-    # --- 1. Geração dos Vértices ---
-    # Adicionar os pontos centrais da base e do topo primeiro
+    # --- 1. Geração dos Vértices (LÓGICA Y-UP) ---
+    # Adicionar os pontos centrais da base (y=0) e do topo (y=altura)
     centro_base = [0, 0, 0]
-    centro_topo = [0, 0, altura]
+    centro_topo = [0, altura, 0] # MUDANÇA: Altura aplicada em Y
     vertices.append(centro_base)
     vertices.append(centro_topo)
 
-    # Gerar os vértices para as bordas dos círculos da base e do topo
+    # Gerar os vértices para as bordas dos círculos no plano XZ
     angulos = np.linspace(0, 2 * np.pi, num_divisoes, endpoint=False)
     for angulo in angulos:
+        # O círculo é formado pelas coordenadas X e Z
         x = raio * np.cos(angulo)
-        y = raio * np.sin(angulo)
-        vertices.append([x, y, 0])      # Vértice na borda da base
-        vertices.append([x, y, altura]) # Vértice na borda do topo
+        z = raio * np.sin(angulo)      # MUDANÇA: y -> z
+
+        # A altura é aplicada na coordenada Y
+        vertices.append([x, 0, z])      # Vértice na borda da base (y=0)
+        vertices.append([x, altura, z]) # Vértice na borda do topo (y=altura)
 
     vertices = np.array(vertices)
 
     # --- 2. Geração das Faces Triangulares e Arestas ---
+    # A lógica de indexação permanece a mesma, pois a ordem de criação dos vértices foi mantida.
     idx_centro_base = 0
     idx_centro_topo = 1
 
     for i in range(num_divisoes):
         j = (i + 1) % num_divisoes
 
-        # Índices dos vértices nas bordas. Cada passo no loop de geração
-        # criou 2 vértices (base, topo), começando do índice 2.
+        # Índices dos vértices nas bordas
         idx_base_i = 2 + i * 2
         idx_topo_i = 2 + i * 2 + 1
         idx_base_j = 2 + j * 2
@@ -60,18 +61,18 @@ def cilindro(raio, altura, num_divisoes=20):
         faces.append((idx_base_i, idx_topo_j, idx_topo_i))
         faces.append((idx_base_i, idx_base_j, idx_topo_j))
 
-        # Triangulação da tampa da base (sentido horário para normal apontar para baixo)
+        # Triangulação da tampa da base (sentido horário para normal apontar para -Y)
         faces.append((idx_centro_base, idx_base_j, idx_base_i))
 
-        # Triangulação da tampa do topo (sentido anti-horário para normal apontar para cima)
+        # Triangulação da tampa do topo (sentido anti-horário para normal apontar para +Y)
         faces.append((idx_centro_topo, idx_topo_i, idx_topo_j))
 
         # Arestas (opcional, para visualização wireframe)
-        arestas.append((idx_base_i, idx_base_j))  # Borda da base
-        arestas.append((idx_topo_i, idx_topo_j))  # Borda do topo
-        arestas.append((idx_base_i, idx_topo_i))  # Linha lateral
-        arestas.append((idx_centro_base, idx_base_i)) # Raio da base
-        arestas.append((idx_centro_topo, idx_topo_i)) # Raio do topo
+        arestas.append((idx_base_i, idx_base_j))
+        arestas.append((idx_topo_i, idx_topo_j))
+        arestas.append((idx_base_i, idx_topo_i))
+        arestas.append((idx_centro_base, idx_base_i))
+        arestas.append((idx_centro_topo, idx_topo_i))
 
     return vertices, arestas, faces
 
@@ -108,11 +109,12 @@ if __name__ == '__main__':
     ax.set_zlabel('Eixo Z')
     ax.set_title('Modelo de Cilindro Sólido com Malha Triangular')
 
-    # Ajustar os limites para visualização adequada
-    ax.set_box_aspect([raio_cilindro*2, raio_cilindro*2, altura_cilindro]) # Proporções mais realistas
-    ax.set_xlim(-raio_cilindro*1.2, raio_cilindro*1.2)
-    ax.set_ylim(-raio_cilindro*1.2, raio_cilindro*1.2)
-    ax.set_zlim(0, altura_cilindro)
+    ax.set_box_aspect([raio_cilindro*2, altura_cilindro, raio_cilindro*2])
+    # Limites em X e Z são baseados no raio
+    ax.set_xlim(-raio_cilindro*1.5, raio_cilindro*1.5)
+    ax.set_zlim(-raio_cilindro*1.5, raio_cilindro*1.5)
+    # Limite em Y é baseado na altura
+    ax.set_ylim(0, altura_cilindro)
 
-    ax.view_init(elev=20, azim=30)
+    ax.view_init(elev=110, azim=210, roll=-61)
     plt.show()

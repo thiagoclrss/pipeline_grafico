@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from mpl_toolkits.mplot3d import Axes3D
 
-def cano_reto(raio, comprimento, espessura, num_divisoes=20):
+def cano_reto(raio, altura, espessura, num_divisoes=20):
     """
     Modela um cano reto (cilindro oco) alinhado com o eixo Z, usando faces triangulares.
 
@@ -35,61 +35,54 @@ def cano_reto(raio, comprimento, espessura, num_divisoes=20):
 
     # Vértices do círculo externo no início (z=0) e no fim (z=comprimento)
     for angulo in angulos:
-        x_ext = raio * np.cos(angulo)
-        y_ext = raio * np.sin(angulo)
-        vertices.append([x_ext, y_ext, 0])
-        vertices.append([x_ext, y_ext, comprimento])
+        # O círculo agora é formado por X e Z para ficar no "chão"
+        x = raio * np.cos(angulo)
+        z = raio * np.sin(angulo) # MUDANÇA: y -> z
 
-    # Vértices do círculo interno no início (z=0) e no fim (z=comprimento)
-    for angulo in angulos:
+        # A altura agora é aplicada em Y
+        vertices.append([x, 0, z])      # Vértice externo na base (y=0)
+        vertices.append([x, altura, z]) # Vértice externo no topo (y=altura)
+
+        # Vértices internos
         x_int = raio_interno * np.cos(angulo)
-        y_int = raio_interno * np.sin(angulo)
-        vertices.append([x_int, y_int, 0])
-        vertices.append([x_int, y_int, comprimento])
+        z_int = raio_interno * np.sin(angulo) # MUDANÇA: y -> z
+        vertices.append([x_int, 0, z_int])      # Vértice interno na base (y=0)
+        vertices.append([x_int, altura, z_int]) # Vértice interno no topo (y=altura)
 
     vertices = np.array(vertices)
 
-    # --- 2. Geração das Faces Triangulares e Arestas ---
-    num_vertices_externos = num_divisoes * 2
-
+        # --- 2. Geração das Faces e Arestas (Lógica de indexação não muda) ---
     for i in range(num_divisoes):
         j = (i + 1) % num_divisoes
 
-        # Índices para os vértices do anel externo
-        idx_ext_inicio_i = i * 2
-        idx_ext_fim_i = i * 2 + 1
-        idx_ext_inicio_j = j * 2
-        idx_ext_fim_j = j * 2 + 1
-
-        # Índices para os vértices do anel interno
-        idx_int_inicio_i = num_vertices_externos + i * 2
-        idx_int_fim_i = num_vertices_externos + i * 2 + 1
-        idx_int_inicio_j = num_vertices_externos + j * 2
-        idx_int_fim_j = num_vertices_externos + j * 2 + 1
+        # Índices dos 4 vértices para o segmento atual (externo e interno)
+        idx_ext_base_i, idx_ext_topo_i = i * 4, i * 4 + 1
+        idx_int_base_i, idx_int_topo_i = i * 4 + 2, i * 4 + 3
+        idx_ext_base_j, idx_ext_topo_j = j * 4, j * 4 + 1
+        idx_int_base_j, idx_int_topo_j = j * 4 + 2, j * 4 + 3
 
         # Triangulação da superfície externa
-        faces.append((idx_ext_inicio_i, idx_ext_fim_j, idx_ext_fim_i))
-        faces.append((idx_ext_inicio_i, idx_ext_inicio_j, idx_ext_fim_j))
+        faces.append((idx_ext_base_i, idx_ext_topo_j, idx_ext_topo_i))
+        faces.append((idx_ext_base_i, idx_ext_base_j, idx_ext_topo_j))
 
-        # Triangulação da superfície interna (ordem invertida para a normal)
-        faces.append((idx_int_inicio_i, idx_int_fim_i, idx_int_fim_j))
-        faces.append((idx_int_inicio_i, idx_int_fim_j, idx_int_inicio_j))
+        # Triangulação da superfície interna
+        faces.append((idx_int_base_i, idx_int_topo_i, idx_int_topo_j))
+        faces.append((idx_int_base_i, idx_int_topo_j, idx_int_base_j))
 
-        # Triangulação do anel de início (borda)
-        faces.append((idx_ext_inicio_i, idx_int_inicio_j, idx_int_inicio_i))
-        faces.append((idx_ext_inicio_i, idx_ext_inicio_j, idx_int_inicio_j))
+        # Triangulação do anel da base
+        faces.append((idx_ext_base_i, idx_int_base_i, idx_int_base_j))
+        faces.append((idx_ext_base_i, idx_int_base_j, idx_ext_base_j))
 
-        # Triangulação do anel de fim (borda)
-        faces.append((idx_ext_fim_i, idx_int_fim_i, idx_int_fim_j))
-        faces.append((idx_ext_fim_i, idx_int_fim_j, idx_ext_fim_j))
+        # Triangulação do anel do topo
+        faces.append((idx_ext_topo_i, idx_int_topo_j, idx_int_topo_i))
+        faces.append((idx_ext_topo_i, idx_ext_topo_j, idx_int_topo_j))
 
-        # Arestas (opcional, para visualização wireframe)
-        arestas.append((idx_ext_inicio_i, idx_ext_inicio_j))
-        arestas.append((idx_ext_fim_i, idx_ext_fim_j))
-        arestas.append((idx_int_inicio_i, idx_int_inicio_j))
-        arestas.append((idx_int_fim_i, idx_int_fim_j))
-        arestas.append((idx_ext_inicio_i, idx_ext_fim_i))
-        arestas.append((idx_int_inicio_i, idx_int_fim_i))
+        # Arestas
+        arestas.append((idx_ext_base_i, idx_ext_base_j))
+        arestas.append((idx_int_base_i, idx_int_base_j))
+        arestas.append((idx_ext_topo_i, idx_ext_topo_j))
+        arestas.append((idx_int_topo_i, idx_int_topo_j))
+        arestas.append((idx_ext_base_i, idx_ext_topo_i))
 
     return vertices, arestas, faces
 
@@ -97,12 +90,12 @@ def cano_reto(raio, comprimento, espessura, num_divisoes=20):
 if __name__ == '__main__':
     # Parâmetros do cano
     raio_cano = 2.5
-    comprimento_cano = 8.0
+    altura_cano = 5.0
     espessura_cano = 0.5
 
     # Gerar a geometria do cano
     vertices_cano, arestas_cano, faces_cano = cano_reto(
-        raio_cano, comprimento_cano, espessura_cano, num_divisoes=24
+        raio_cano, altura_cano, espessura_cano, num_divisoes=24
     )
 
     # Configuração da visualização 3D
@@ -129,8 +122,9 @@ if __name__ == '__main__':
 
     # Ajustar os limites para visualização adequada
     ax.set_xlim([-raio_cano*1.5, raio_cano*1.5])
-    ax.set_ylim([-raio_cano*1.5, raio_cano*1.5])
-    ax.set_zlim([-1, comprimento_cano + 1])
-    ax.view_init(elev=25, azim=45)
+    ax.set_ylim([-1, altura_cano + 1])
+    ax.set_zlim([-raio_cano*1.5, raio_cano*1.5])
+
+    ax.view_init(elev=110, azim=210, roll=-61)
 
     plt.show()

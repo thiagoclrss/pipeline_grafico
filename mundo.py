@@ -48,7 +48,7 @@ def compor_cena():
     # --- Objeto 1: Paralelepípedo como base/chão ---
     # A função paralelepipedo() agora é importada do seu próprio arquivo.
     v_caixa, _, f_caixa = paralelepipedo(largura=8, altura=3, profundidade=5)
-    mat_caixa = matriz_translacao(-6, -6, -6)
+    mat_caixa = matriz_translacao(2, 0, -6)
     v_caixa = aplicar_transformacao(v_caixa, mat_caixa)
 
     offset = len(todos_vertices)
@@ -67,10 +67,11 @@ def compor_cena():
     todas_cores.extend(['cornflowerblue'] * len(f_cil))
 
     # --- Objeto 3: Cano Reto deitado ---
-    v_cano_r, _, f_cano_r = cano_reto(raio=1.5, comprimento=8, espessura=0.3)
-    mat_rot_cano_r = matriz_rotacao_y(90)
+    v_cano_r, _, f_cano_r = cano_reto(raio=1.5, altura=8, espessura=0.3)
+    mat_rot_cano_ry = matriz_rotacao_y(-45)
+    mat_rot_cano_rz = matriz_rotacao_z(-30)
     mat_trans_cano_r = matriz_translacao(-8, 1.5, 0)
-    v_cano_r = aplicar_transformacao(v_cano_r, mat_rot_cano_r)
+    v_cano_r = aplicar_transformacao(v_cano_r, mat_rot_cano_ry @ mat_rot_cano_rz)
     v_cano_r = aplicar_transformacao(v_cano_r, mat_trans_cano_r)
 
     offset = len(todos_vertices)
@@ -122,9 +123,9 @@ if __name__ == '__main__':
     ax.set_title('Cena 3D com Sólidos Modulares')
 
     ax.set_xlim(-10, 10)
-    ax.set_ylim(-10, 10)
+    ax.set_ylim(0, 20)
     ax.set_zlim(-10, 10)
 
-    ax.view_init(elev=30, azim=-75)
+    ax.view_init(elev=100, azim=270)
     plt.grid(True)
     plt.show()

@@ -79,5 +79,5 @@ if __name__ == '__main__':
     # Forçar aspecto igual para evitar distorções
     ax.set_box_aspect((tamanho_linha + 2, 2, 2))
 
-    ax.view_init(elev=20, azim=30)
+    ax.view_init(elev=100, azim=270)
     plt.show()
