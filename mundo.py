@@ -1,16 +1,11 @@
 import matplotlib
 matplotlib.use('TkAgg')
 import numpy as np
-import solidos
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from mpl_toolkits.mplot3d import Axes3D
-
-
-# --- SESSÃO 1: Importando os Sólidos dos Módulos ---
-# O código dos sólidos agora vive em arquivos separados dentro da pasta 'solidos'.
 from solidos.paralelepipedo import paralelepipedo
-from solidos.cilindro import cilindro # Supondo que a função esteja em cilindro.py
+from solidos.cilindro import cilindro
 from solidos.cano_reto import cano_reto
 from solidos.cano_curvo import cano_curvado, curva_hermite # Importar a função auxiliar também
 from solidos.reta import linha_reta

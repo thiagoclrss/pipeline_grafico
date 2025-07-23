@@ -62,7 +62,6 @@ if __name__ == '__main__':
 
     ax_mundo.set_title('Cena no Sistema de Coordenadas do Mundo')
     ax_mundo.set_xlabel('X Mundo'); ax_mundo.set_ylabel('Y Mundo'); ax_mundo.set_zlabel('Z Mundo')
-    #ax_mundo.set_xlim(-10, 10); ax_mundo.set_ylim(-10, 10); ax_mundo.set_zlim(-10, 10)
     ax_mundo.view_init(elev=30, azim=-75)
     ax_mundo.legend()
     plt.grid(True)
@@ -94,7 +93,6 @@ if __name__ == '__main__':
 
     ax_camera.set_title('Cena no Sistema de Coordenadas da Câmera')
     ax_camera.set_xlabel('X Câmera'); ax_camera.set_ylabel('Y Câmera'); ax_camera.set_zlabel('Z Câmera')
-    #ax_camera.set_xlim(-10, 10); ax_camera.set_ylim(-10, 10); ax_camera.set_zlim(-20, 0)
     ax_camera.view_init(elev=30, azim=-70)
     ax_camera.legend()
     plt.grid(True)

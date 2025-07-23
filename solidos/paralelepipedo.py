@@ -68,9 +68,9 @@ if __name__ == '__main__':
     ax.set_title('Modelo de Paralelepípedo')
 
     ax.set_box_aspect([largura_caixa, profundidade_caixa, altura_caixa])
-    ax.set_xlim(0, largura_caixa + 2)
+    ax.set_xlim(0, largura_caixa)
     ax.set_ylim(0, profundidade_caixa)
-    ax.set_zlim(0, altura_caixa + 2)
+    ax.set_zlim(0, altura_caixa)
 
     ax.view_init(elev=30, azim=-60)
     plt.show()
