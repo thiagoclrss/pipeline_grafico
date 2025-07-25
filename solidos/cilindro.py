@@ -77,7 +77,7 @@ if __name__ == '__main__':
     ax.set_zlabel('Eixo Z')
     ax.set_title('Modelo de Cilindro')
 
-    ax.set_box_aspect([raio_cilindro*2, raio_cilindro*2, altura_cilindro]) # Proporções mais realistas
+    ax.set_box_aspect([raio_cilindro*2, raio_cilindro*2, altura_cilindro])
     ax.set_xlim(-raio_cilindro*1.2, raio_cilindro*1.2)
     ax.set_ylim(-raio_cilindro*1.2, raio_cilindro*1.2)
     ax.set_zlim(0, altura_cilindro)
