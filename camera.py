@@ -10,7 +10,7 @@ from solidos.cano_reto import cano_reto
 from solidos.cano_curvo import cano_curvado, curva_hermite
 from solidos.reta import linha_reta
 from mundo import compor_cena
-from matrizes_transformacao import matriz_translacao, aplicar_transformacao2d
+from matrizes_transformacao import matriz_translacao, aplicar_transformacao
 
 def matriz_visualizacao(eye, at, up):
 
@@ -68,10 +68,10 @@ if __name__ == '__main__':
 
     matriz_view = matriz_visualizacao(posicao_camera_eye, ponto_alvo_at, vetor_up_mundo)
 
-    vertices_camera = aplicar_transformacao2d(vertices_mundo, matriz_view)
-    vertices_linha_camera = aplicar_transformacao2d(vertices_linha_mundo, matriz_view)
-    origem_mundo_transformada = aplicar_transformacao2d(np.array([0.0, 0.0, 0.0]), matriz_view)
-    ponto_alvo_at_camera = aplicar_transformacao2d(ponto_alvo_at, matriz_view)
+    vertices_camera = aplicar_transformacao(vertices_mundo, matriz_view)
+    vertices_linha_camera = aplicar_transformacao(vertices_linha_mundo, matriz_view)
+    origem_mundo_transformada = aplicar_transformacao(np.array([0.0, 0.0, 0.0]), matriz_view)
+    ponto_alvo_at_camera = aplicar_transformacao(ponto_alvo_at, matriz_view)
 
     fig_camera = plt.figure(figsize=(12, 10))
     ax_camera: Axes3D = fig_camera.add_subplot(projection='3d')

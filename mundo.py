@@ -7,7 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from solidos.paralelepipedo import paralelepipedo
 from solidos.cilindro import cilindro
 from solidos.cano_reto import cano_reto
-from solidos.cano_curvo import cano_curvado, curva_hermite # Importar a função auxiliar também
+from solidos.cano_curvo import cano_curvado, curva_hermite
 from solidos.reta import linha_reta
 from matrizes_transformacao import matriz_translacao, matriz_rotacao_z, matriz_rotacao_y, matriz_escala, aplicar_transformacao
 

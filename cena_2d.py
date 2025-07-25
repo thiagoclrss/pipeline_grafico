@@ -7,7 +7,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from mpl_toolkits.mplot3d import Axes3D
 
 from camera import matriz_visualizacao
-from matrizes_transformacao import aplicar_transformacao2d
+from matrizes_transformacao import aplicar_transformacao
 from mundo import compor_cena
 
 def matriz_projecao_perspectiva(fov_graus, aspect_ratio, near, far):
@@ -34,7 +34,7 @@ def plotar_cena_2d(vertices_cena, faces_cena, cores_faces, vertices_linha, arest
 
     render_list = []
 
-    vertices_cena_scc = aplicar_transformacao2d(vertices_cena, mat_view)
+    vertices_cena_scc = aplicar_transformacao(vertices_cena, mat_view)
 
     for i, face in enumerate(faces_cena):
         profundidade = np.mean(vertices_cena_scc[list(face), 2])

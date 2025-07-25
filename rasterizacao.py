@@ -32,7 +32,7 @@ def rasterizar_cena_resolucoes(vertices_cena, faces_cena, cores_faces, vertices_
     render_list_poligonos.sort(key=lambda item: item['profundidade'])
 
     fig, axes = plt.subplots(1, len(resolucoes), figsize=(6 * len(resolucoes), 6))
-    if len(resolucoes) == 1: axes = [axes] # Garante que axes seja uma lista
+    if len(resolucoes) == 1: axes = [axes]
     fig.suptitle("Cena Rasterizada em Diferentes Resoluções", fontsize=16)
 
     cores_rgb = plt.colormaps['tab10'].colors
